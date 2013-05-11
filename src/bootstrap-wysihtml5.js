@@ -6,7 +6,7 @@
             var size = (options && options.size) ? ' btn-'+options.size : '';
             return "<li class='dropdown'>" +
               "<a class='btn dropdown-toggle" + size + "' data-toggle='dropdown' href='#'>" +
-              "<i class='icon-font'></i>&nbsp;<span class='current-font'>" + locale.font_styles.normal + "</span>&nbsp;<b class='caret'></b>" +
+              "<i class='icon-text-height icon-text-width'></i>&nbsp;<span class='current-font'>" + locale.font_styles.normal + "</span>&nbsp;<b class='caret'></b>" +
               "</a>" +
               "<ul class='dropdown-menu'>" +
                 "<li><a data-wysihtml5-command='formatBlock' data-wysihtml5-command-value='div' tabindex='-1'>" + locale.font_styles.normal + "</a></li>" +
@@ -207,7 +207,7 @@
             toolbar.find("a[data-wysihtml5-command='formatBlock']").click(function(e) {
                 var target = e.target || e.srcElement;
                 var el = $(target);
-                self.toolbar.find('.current-font').text(el.html());
+                self.toolbar.find('.current-font').text(el.text());
             });
 
             toolbar.find("a[data-wysihtml5-command='foreColor']").click(function(e) {
