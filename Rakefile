@@ -1,47 +1,33 @@
-#!/usr/bin/env rake
-require File.expand_path('../lib/bootstrap-wysihtml5-rails/version', __FILE__)
-
-desc "Update assets"
-task 'update' do
-  origin_lib_path = "bootstrap-wysihtml5/lib"
-  origin_src_path = "bootstrap-wysihtml5/src"
-  dest_javascript_path = "vendor/assets/javascripts/bootstrap-wysihtml5"
-  dest_css_path = "vendor/assets/stylesheets/bootstrap-wysihtml5"
-
-  system("rm -rf bootstrap-wysihtml5")
-  system("git clone git://github.com/jhollingworth/bootstrap-wysihtml5.git")
-
-  system("cp #{origin_src_path}/bootstrap-wysihtml5.css #{dest_css_path}/core.css")
-
-  Dir.foreach("bootstrap-wysihtml5/src/locales") do |file|
-    unless file == '.' || file == '..'
-      abbreviated_file_name = file.gsub('bootstrap-wysihtml5.', '')
-      system("cp #{origin_src_path}/locales/#{file} #{dest_javascript_path}/locales/#{abbreviated_file_name}")
-    end
-  end
-
-  core_file = File.read("#{origin_src_path}/bootstrap-wysihtml5.js")
-  original_string = /stylesheets: \[".\/lib\/css\/wysiwyg-color.css"\]/
-  objective_string = 'stylesheets: ["<%= Rails.configuration.assets.prefix + \'/bootstrap-wysihtml5/wysiwyg-color.css\' %>"]'
-
-  replaced   = core_file.gsub(original_string, objective_string)
-
-  File.open("#{dest_javascript_path}/core.js.erb", "w") { |file| file.puts replaced }
-
-  system("cp #{origin_lib_path}/js/wysihtml5-0.3.0.js #{dest_javascript_path}/wysihtml5.js")
-  system("cp #{origin_lib_path}/css/wysiwyg-color.css #{dest_css_path}/wysiwyg-color.css")
-
-
-  system("git status")
+require 'rubygems'
+require 'bundler'
+require 'fileutils'
+begin
+  Bundler.setup(:default, :development)
+rescue Bundler::BundlerError => e
+  $stderr.puts e.message
+  $stderr.puts "Run `bundle install` to install missing gems"
+  exit e.status_code
 end
 
-desc "Build"
-task "build" do
-  system("gem build bootstrap-wysihtml5-rails.gemspec")
-end
+ROOT = File.dirname(__FILE__)
 
-desc "Publish a new version"
-task :publish => :build do
-  system("gem push bootstrap-wysihtml5-rails-#{BootstrapWysihtml5Rails::Rails::VERSION}.gem")
-  system("git push")
+require 'rake'
+require 'uglifier'
+
+task :default do
+    version = File.open(File.join(ROOT, 'VERSION')).read
+    output_path = File.join(ROOT, "dist")
+
+    js_input_path = File.join('src', 'bootstrap-wysihtml5.js')
+    css_input_path = File.join('src', 'bootstrap-wysihtml5.css')
+
+    js_output_path = File.join(output_path, "bootstrap-wysihtml5-#{version}.js")
+    minified_js_output_path = File.join(output_path, "bootstrap-wysihtml5-#{version}.min.js")
+	css_output_path = File.join(output_path, "bootstrap-wysihtml5-#{version}.css")
+
+    minified_js = Uglifier.compile(File.read(js_input_path))
+     
+    File.open(minified_js_output_path, 'w') { |f| f.write(minified_js) } 
+    File.open(js_output_path, 'w') { |f| f.write(File.read(js_input_path)) } 
+    File.open(css_output_path, 'w') { |f| f.write(File.read(css_input_path)) }
 end
